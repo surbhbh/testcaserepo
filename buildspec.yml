@@ -38,14 +38,31 @@ phases:
       - "bundle install"
       - "export SSL_CERT_FILE=/etc/ssl/cert.pem"
       - "gem install cocoapods"
-      - "echo 'Created Podfile contains:'"
-      - "cat Podfile"
+      - "mkdir -p fastlane"
+      - |
+        cat > fastlane/Fastfile << 'EOF'
+        default_platform(:ios)
+        platform :ios do
+          desc "Build for testing"
+          lane :build_for_testing do
+            gym(
+              scheme: "MyApp",
+              configuration: "Debug",
+              build_for_testing: true,
+              derived_data_path: "DerivedData",
+              skip_package_ipa: true
+            )
+          end
+        end
+        EOF
+      - "echo 'Created Fastfile contains:'"
+      - "cat fastlane/Fastfile"
       - "pod install || true"
       - "ls -ld DerivedData"
   build:
     commands:
       - "echo 'Build For Testing'"
-      - "sudo bundle exec fastlane build_for_testing"
+      - "bundle exec fastlane build_for_testing --verbose"
       - "echo 'Checking DerivedData'"
       - "ls DerivedData"
 artifacts:
