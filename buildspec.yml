@@ -5,7 +5,6 @@ env:
     LC_ALL: "en_US.UTF-8"
     FL_OUTPUT_DIR: "output"
     SCAN_DEVICE: "iPhone 15 (16.4)"
-  shell: "/bin/bash --login -o pipefail"
 
 cache:
   paths:
@@ -13,7 +12,10 @@ cache:
 
 phases:
   install:
+    runtime-versions:
+      ruby: latest
     commands:
+      - set -eo pipefail  # This sets the shell options you wanted
       - echo "checking if Rosetta needs to be installed"
       - |
         #!/usr/bin/env bash
