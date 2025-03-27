@@ -1,47 +1,45 @@
 version: 0.2
-#Use this buildspec after we figure out caching DerivedData
 env:
-variables:
-#xcode version is set to 15.4
-LANG: "en_US.UTF-8"
-LC_ALL: "en_US.UTF-8"
-FL_OUTPUT_DIR: "output"
-working_directory: "/Users/distiller/project"
-shell: "/bin/bash --login -o pipefail"
-SCAN_DEVICE: "iPhone 15 (16.4)"
-cache:
-paths:
-- 'DerivedData/*/'
-phases:
-install:
-commands: #Taking from https://circleci.com/developer/orbs/orb/circleci/macos#commands-install-rosetta
-- echo "checking if Rosetta needs to be installed"
-- |
-#!/usr/bin/env bash
-if [ "$(uname -m)" = "arm64" ]; then
-/usr/sbin/softwareupdate --install-rosetta --agree-to-license
-else
-echo "Rosetta 2 can only be installed on Apple Silicon!"
-exit 1
-fi
-pre_build:
-commands:
-- echo "Check / Setup Shared DerivedData"
-- if [ ! -d "DerivedData" ]; then mkdir DerivedData; fi
-- echo "setup gems and pod install"
-- bundle install #Gem Install
-- export SSL_CERT_FILE=/etc/ssl/cert.pem
-- pod install #Pod Install
-- ls -ld DerivedData
+  variables:
+    LANG: "en_US.UTF-8"
+    LC_ALL: "en_US.UTF-8"
+    FL_OUTPUT_DIR: "output"
+    SCAN_DEVICE: "iPhone 15 (16.4)"
+  shell: "/bin/bash --login -o pipefail"
 
-build:
-commands:
-- echo "Build For Testing"
-- sudo bundle exec fastlane build_for_testing
-- echo "Checking DerivedData"
-- ls DerivedData
+cache:
+  paths:
+    - 'DerivedData/*/'
+
+phases:
+  install:
+    commands:
+      - echo "checking if Rosetta needs to be installed"
+      - |
+        #!/usr/bin/env bash
+        if [ "$(uname -m)" = "arm64" ]; then
+          /usr/sbin/softwareupdate --install-rosetta --agree-to-license
+        else
+          echo "Rosetta 2 can only be installed on Apple Silicon!"
+          exit 1
+        fi
+  pre_build:
+    commands:
+      - echo "Check / Setup Shared DerivedData"
+      - if [ ! -d "DerivedData" ]; then mkdir DerivedData; fi
+      - echo "setup gems and pod install"
+      - bundle install
+      - export SSL_CERT_FILE=/etc/ssl/cert.pem
+      - pod install
+      - ls -ld DerivedData
+  build:
+    commands:
+      - echo "Build For Testing"
+      - sudo bundle exec fastlane build_for_testing
+      - echo "Checking DerivedData"
+      - ls DerivedData
 
 artifacts:
-files:
-- '/*'
-base-directory: 'DerivedData'
+  files:
+    - '**/*'
+  base-directory: 'DerivedData'
