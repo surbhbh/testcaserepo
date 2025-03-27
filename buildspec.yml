@@ -21,14 +21,26 @@ phases:
       - "ls -la"
       - "if [ ! -f \"Gemfile\" ]; then echo 'Error: Gemfile not found!'; exit 1; fi"
       - |
+        # Find Xcode project
+        XCODEPROJ=$(find . -maxdepth 1 -name "*.xcodeproj" | head -n 1)
+        if [ -z "$XCODEPROJ" ]; then
+          echo "No .xcodeproj file found!"
+          exit 1
+        fi
+        echo "Found Xcode project: $XCODEPROJ"
+        
+        # Get the project name without .xcodeproj extension
+        PROJECT_NAME=$(basename "$XCODEPROJ" .xcodeproj)
+        echo "Project name: $PROJECT_NAME"
+        
+        # Create Podfile
         if [ ! -f "Podfile" ]; then
           echo "platform :ios, '16.0'" > Podfile
+          echo "project '$XCODEPROJ'" >> Podfile
           echo "" >> Podfile
-          echo "target 'MyApp' do" >> Podfile
+          echo "target '$PROJECT_NAME' do" >> Podfile
           echo "  use_frameworks!" >> Podfile
-          echo "" >> Podfile
           echo "  # Add your pods here" >> Podfile
-          echo "  # pod 'Alamofire'" >> Podfile
           echo "end" >> Podfile
         fi
       - "echo 'Check / Setup Shared DerivedData'"
@@ -40,18 +52,21 @@ phases:
       - "gem install cocoapods"
       - "mkdir -p fastlane"
       - |
-        cat > fastlane/Fastfile << 'EOF'
+        # Create Fastfile with detected project
+        XCODEPROJ=$(find . -maxdepth 1 -name "*.xcodeproj" | head -n 1)
+        PROJECT_NAME=$(basename "$XCODEPROJ" .xcodeproj)
+        cat > fastlane/Fastfile << EOF
         default_platform(:ios)
         platform :ios do
           desc "Build for testing"
           lane :build_for_testing do
             scan(
-              scheme: "MyApp",
+              project: "$XCODEPROJ",
+              scheme: "$PROJECT_NAME",
               clean: true,
-              build_for_testing: true,
               derived_data_path: "DerivedData",
               destination: "platform=iOS Simulator,name=iPhone 15",
-              xcargs: "ONLY_ACTIVE_ARCH=YES"
+              build_for_testing: true
             )
           end
         end
