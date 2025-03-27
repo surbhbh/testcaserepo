@@ -20,7 +20,25 @@ phases:
       - "echo 'Listing directory contents:'"
       - "ls -la"
       - "if [ ! -f \"Gemfile\" ]; then echo 'Error: Gemfile not found!'; exit 1; fi"
-      - "if [ ! -f \"Podfile\" ]; then echo 'Creating Podfile'; echo 'platform :ios, \"16.0\"' > Podfile; echo 'target \"YourTarget\" do' >> Podfile; echo 'end' >> Podfile; fi"
+      - |
+        if [ ! -f "Podfile" ]; then
+          echo 'Creating Podfile'
+          echo 'platform :ios, "16.0"' > Podfile
+          echo '# Find first xcodeproj file' >> Podfile
+          XCODEPROJ=$(find . -maxdepth 1 -name "*.xcodeproj" | head -n 1)
+          if [ -z "$XCODEPROJ" ]; then
+            echo "No .xcodeproj file found!"
+            exit 1
+          fi
+          echo "project '$XCODEPROJ'" >> Podfile
+          echo "" >> Podfile
+          echo "target 'YourTarget' do" >> Podfile
+          echo "  use_frameworks!" >> Podfile
+          echo "  # Add your pods here" >> Podfile
+          echo "  # pod 'Alamofire'" >> Podfile
+          echo "end" >> Podfile
+          cat Podfile
+        fi
       - "echo 'Check / Setup Shared DerivedData'"
       - "if [ ! -d \"DerivedData\" ]; then mkdir DerivedData; fi"
       - "echo 'setup gems and pod install'"
@@ -28,6 +46,8 @@ phases:
       - "bundle install"
       - "export SSL_CERT_FILE=/etc/ssl/cert.pem"
       - "gem install cocoapods"
+      - "echo 'Created Podfile contains:'"
+      - "cat Podfile"
       - "pod install"
       - "ls -ld DerivedData"
   build:
