@@ -22,17 +22,14 @@ phases:
       - "if [ ! -f \"Gemfile\" ]; then echo 'Error: Gemfile not found!'; exit 1; fi"
       - |
         if [ ! -f "Podfile" ]; then
-          echo 'Creating basic Podfile'
-          cat > Podfile << 'EOF'
-          platform :ios, '16.0'
-          
-          target 'MyApp' do
-            use_frameworks!
-            
-            # Add your pods here
-            # pod 'Alamofire'
-          end
-          EOF
+          echo "platform :ios, '16.0'" > Podfile
+          echo "" >> Podfile
+          echo "target 'MyApp' do" >> Podfile
+          echo "  use_frameworks!" >> Podfile
+          echo "" >> Podfile
+          echo "  # Add your pods here" >> Podfile
+          echo "  # pod 'Alamofire'" >> Podfile
+          echo "end" >> Podfile
         fi
       - "echo 'Check / Setup Shared DerivedData'"
       - "if [ ! -d \"DerivedData\" ]; then mkdir DerivedData; fi"
@@ -43,7 +40,7 @@ phases:
       - "gem install cocoapods"
       - "echo 'Created Podfile contains:'"
       - "cat Podfile"
-      - "pod install || true"  # Allow pod install to fail for now
+      - "pod install || true"
       - "ls -ld DerivedData"
   build:
     commands:
