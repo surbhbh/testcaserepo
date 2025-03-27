@@ -12,11 +12,11 @@ cache:
 
 phases:
   install:
-    runtime-versions:
-      ruby: latest
     commands:
       - echo "Starting install phase"
       - set -eo pipefail
+      - rbenv install 3.2.2 || true
+      - rbenv global 3.2.2
       - echo "checking if Rosetta needs to be installed"
       - if [ "$(uname -m)" = "arm64" ]; then /usr/sbin/softwareupdate --install-rosetta --agree-to-license; else echo "Rosetta 2 can only be installed on Apple Silicon!"; exit 1; fi
   pre_build:
