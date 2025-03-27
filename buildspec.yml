@@ -18,7 +18,6 @@ phases:
       - set -eo pipefail
       - echo "checking if Rosetta needs to be installed"
       - |
-        #!/usr/bin/env bash
         if [ "$(uname -m)" = "arm64" ]; then
           /usr/sbin/softwareupdate --install-rosetta --agree-to-license
         else
@@ -30,13 +29,11 @@ phases:
       - echo "Current directory: $(pwd)"
       - echo "Listing directory contents:"
       - ls -la
-      # Check if Gemfile exists
       - |
         if [ ! -f "Gemfile" ]; then
           echo "Error: Gemfile not found!"
           exit 1
         fi
-      # Check if Podfile exists
       - |
         if [ ! -f "Podfile" ]; then
           echo "Error: Podfile not found!"
@@ -45,7 +42,7 @@ phases:
       - echo "Check / Setup Shared DerivedData"
       - if [ ! -d "DerivedData" ]; then mkdir DerivedData; fi
       - echo "setup gems and pod install"
-      - gem install bundler  # Ensure bundler is installed
+      - gem install bundler
       - bundle install
       - export SSL_CERT_FILE=/etc/ssl/cert.pem
       - pod install
