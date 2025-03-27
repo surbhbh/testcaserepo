@@ -15,7 +15,7 @@ phases:
     runtime-versions:
       ruby: latest
     commands:
-      - set -eo pipefail  # This sets the shell options you wanted
+      - set -eo pipefail
       - echo "checking if Rosetta needs to be installed"
       - |
         #!/usr/bin/env bash
@@ -27,9 +27,25 @@ phases:
         fi
   pre_build:
     commands:
+      - echo "Current directory: $(pwd)"
+      - echo "Listing directory contents:"
+      - ls -la
+      # Check if Gemfile exists
+      - |
+        if [ ! -f "Gemfile" ]; then
+          echo "Error: Gemfile not found!"
+          exit 1
+        fi
+      # Check if Podfile exists
+      - |
+        if [ ! -f "Podfile" ]; then
+          echo "Error: Podfile not found!"
+          exit 1
+        fi
       - echo "Check / Setup Shared DerivedData"
       - if [ ! -d "DerivedData" ]; then mkdir DerivedData; fi
       - echo "setup gems and pod install"
+      - gem install bundler  # Ensure bundler is installed
       - bundle install
       - export SSL_CERT_FILE=/etc/ssl/cert.pem
       - pod install
