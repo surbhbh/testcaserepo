@@ -45,12 +45,13 @@ phases:
         platform :ios do
           desc "Build for testing"
           lane :build_for_testing do
-            gym(
+            scan(
               scheme: "MyApp",
-              configuration: "Debug",
+              clean: true,
               build_for_testing: true,
               derived_data_path: "DerivedData",
-              skip_package_ipa: true
+              destination: "platform=iOS Simulator,name=iPhone 15",
+              xcargs: "ONLY_ACTIVE_ARCH=YES"
             )
           end
         end
