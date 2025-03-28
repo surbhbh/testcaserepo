@@ -1,0 +1,47 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Runs all the tests"
+  lane :test do
+    scan(
+      project: "MyApp.xcodeproj",
+      scheme: "MyApp",
+      device: "iPhone 15"
+    )
+  end
+
+  desc "Build for testing"
+  lane :build_for_testing do
+    scan(
+      project: "MyApp.xcodeproj",
+      scheme: "MyApp",
+      clean: true,
+      build_for_testing: true,
+      derived_data_path: "DerivedData",
+      destination: "platform=iOS Simulator,name=iPhone 15",
+      xcargs: "ONLY_ACTIVE_ARCH=YES"
+    )
+  end
+
+  desc "Run tests only"
+  lane :test_without_building do
+    scan(
+      project: "MyApp.xcodeproj",
+      scheme: "MyApp",
+      test_without_building: true,
+      derived_data_path: "DerivedData",
+      destination: "platform=iOS Simulator,name=iPhone 15"
+    )
+  end
+
+  desc "Build and upload to TestFlight"
+  lane :beta do
+    increment_build_number
+    build_app(
+      project: "MyApp.xcodeproj",
+      scheme: "MyApp",
+      export_method: "app-store"
+    )
+    upload_to_testflight
+  end
+end
