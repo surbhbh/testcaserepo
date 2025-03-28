@@ -17,34 +17,20 @@ phases:
   pre_build:
     commands:
       - "echo 'Current directory: $(pwd)'"
-      - "echo 'Listing directory contents:'"
-      - "ls -la"
+      - "echo 'Setting up permissions'"
+      - "sudo mkdir -p DerivedData/Logs/{Build,Test,Launch,Package,Localization}"
+      - "sudo chmod -R 777 DerivedData"
       - "if [ ! -f \"Gemfile\" ]; then echo 'Error: Gemfile not found!'; exit 1; fi"
       - |
-        # Find Xcode project
-        XCODEPROJ=$(find . -maxdepth 1 -name "*.xcodeproj" | head -n 1)
-        if [ -z "$XCODEPROJ" ]; then
-          echo "No .xcodeproj file found!"
-          exit 1
-        fi
-        echo "Found Xcode project: $XCODEPROJ"
-        
-        # Get the project name without .xcodeproj extension
-        PROJECT_NAME=$(basename "$XCODEPROJ" .xcodeproj)
-        echo "Project name: $PROJECT_NAME"
-        
-        # Create Podfile
         if [ ! -f "Podfile" ]; then
           echo "platform :ios, '16.0'" > Podfile
-          echo "project '$XCODEPROJ'" >> Podfile
+          echo "project 'MyApp.xcodeproj'" >> Podfile
           echo "" >> Podfile
-          echo "target '$PROJECT_NAME' do" >> Podfile
+          echo "target 'MyApp' do" >> Podfile
           echo "  use_frameworks!" >> Podfile
           echo "  # Add your pods here" >> Podfile
           echo "end" >> Podfile
         fi
-      - "echo 'Check / Setup Shared DerivedData'"
-      - "if [ ! -d \"DerivedData\" ]; then mkdir DerivedData; fi"
       - "echo 'setup gems and pod install'"
       - "gem install bundler"
       - "bundle install"
@@ -52,21 +38,19 @@ phases:
       - "gem install cocoapods"
       - "mkdir -p fastlane"
       - |
-        # Create Fastfile with detected project
-        XCODEPROJ=$(find . -maxdepth 1 -name "*.xcodeproj" | head -n 1)
-        PROJECT_NAME=$(basename "$XCODEPROJ" .xcodeproj)
-        cat > fastlane/Fastfile << EOF
+        cat > fastlane/Fastfile << 'EOF'
         default_platform(:ios)
         platform :ios do
           desc "Build for testing"
           lane :build_for_testing do
             scan(
-              project: "$XCODEPROJ",
-              scheme: "$PROJECT_NAME",
+              project: "MyApp.xcodeproj",
+              scheme: "MyApp",
               clean: true,
               derived_data_path: "DerivedData",
               destination: "platform=iOS Simulator,name=iPhone 15",
-              build_for_testing: true
+              build_for_testing: true,
+              xcargs: "ONLY_ACTIVE_ARCH=YES"
             )
           end
         end
@@ -78,7 +62,7 @@ phases:
   build:
     commands:
       - "echo 'Build For Testing'"
-      - "bundle exec fastlane build_for_testing --verbose"
+      - "sudo bundle exec fastlane build_for_testing --verbose"
       - "echo 'Checking DerivedData'"
       - "ls DerivedData"
 artifacts:
