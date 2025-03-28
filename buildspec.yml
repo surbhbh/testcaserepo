@@ -18,8 +18,8 @@ phases:
     commands:
       - "echo 'Current directory: $(pwd)'"
       - "echo 'Setting up permissions'"
-      - "sudo mkdir -p DerivedData/Logs/{Build,Test,Launch,Package,Localization}"
-      - "sudo chmod -R 755 DerivedData"
+     # - "sudo mkdir -p DerivedData/Logs/{Build,Test,Launch,Package,Localization}"
+     # - "sudo chmod -R 755 DerivedData"
       - "if [ ! -f \"Gemfile\" ]; then echo 'Error: Gemfile not found!'; exit 1; fi"
       - |
         if [ ! -f "Podfile" ]; then
