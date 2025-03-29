@@ -4,12 +4,12 @@ platform :ios do
   desc "Build for testing"
   lane :build_for_testing do
     scan(
-      workspace: "MyApp.xcworkspace",  # Changed from project to workspace
+      workspace: "MyApp.xcworkspace",
       scheme: "MyApp",
       clean: true,
       build_for_testing: true,
       derived_data_path: "DerivedData",
-      destination: "platform=iOS Simulator,name=iPhone 15",
+      destination: "platform=iOS Simulator,name=#{ENV['SCAN_DEVICE']}",
       xcargs: "ONLY_ACTIVE_ARCH=YES"
     )
   end
@@ -17,12 +17,28 @@ platform :ios do
   desc "Run all tests"
   lane :test do
     scan(
-      workspace: "MyApp.xcworkspace",  # Changed from project to workspace
+      workspace: "MyApp.xcworkspace",
       scheme: "MyApp",
       clean: true,
       code_coverage: true,
       derived_data_path: "DerivedData",
-      destination: "platform=iOS Simulator,name=iPhone 15"
+      destination: "platform=iOS Simulator,name=#{ENV['SCAN_DEVICE']}"
+    )
+  end
+
+  desc "Run integration tests"
+  lane :run_integration_testing do
+    scan(
+      workspace: "MyApp.xcworkspace",
+      scheme: "MyApp",
+      clean: false,  # Set to false since we already built in build_for_testing
+      code_coverage: true,
+      derived_data_path: "DerivedData",
+      destination: "platform=iOS Simulator,name=#{ENV['SCAN_DEVICE']}",
+      only_testing: [
+        "MyAppIntegrationTests"  # Adjust this to your actual integration test target name
+      ],
+      test_without_building: true  # Add this since we already built in build_for_testing
     )
   end
 end
