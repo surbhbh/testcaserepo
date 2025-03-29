@@ -39,7 +39,7 @@ phases:
         - echo "Project contents:"
         - cat MyApp.xcodeproj/project.pbxproj
         - echo "Scheme details:"
-        - ls -la MyApp.xcodeproj/xcshareddata/xcschemes/
+       #- ls -la MyApp.xcodeproj/xcshareddata/xcschemes/
         - if [ ! -d "DerivedData" ]; then mkdir DerivedData; else echo "DerivedData exists"; fi
         - ls -la DerivedData
         - echo "ls on derivedData"
