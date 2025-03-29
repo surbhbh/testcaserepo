@@ -6,11 +6,6 @@ target 'MyApp' do
   # Add some basic pods
   pod 'Alamofire'
   pod 'SnapKit'
-  
-  target 'MyApp' do
-    inherit! :search_paths
-    # Pods for testing
-  end
 end
 
 post_install do |installer|
