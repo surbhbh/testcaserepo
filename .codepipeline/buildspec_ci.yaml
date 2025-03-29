@@ -1,0 +1,24 @@
+version: 0.2
+
+env:
+  variables:
+    LANG: "en_US.UTF-8"
+    LC_ALL: "en_US.UTF-8"
+    FL_OUTPUT_DIR: "output"
+    SCAN_DEVICE: "iPhone 15 (16.4)"
+    DERIVED_DATA_DIR: "DerivedData"
+#test updated Fastlane File for use CODEBUILD SRC DIR for new build ci
+batch:
+  fast-fail: false
+  build-graph:
+
+  - identifier: build_for_test
+    buildspec: .codepipeline/buildspec_build_for_test.yaml
+
+  - identifier: integration
+    buildspec: .codepipeline/buildspec_integration_test.yaml
+    depend-on:
+        - build_for_test
+
+
+
