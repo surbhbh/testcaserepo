@@ -7,7 +7,7 @@ target 'MyApp' do
   pod 'Alamofire'
   pod 'SnapKit'
   
-  target 'MyAppTests' do
+  target 'MyApp' do
     inherit! :search_paths
     # Pods for testing
   end
