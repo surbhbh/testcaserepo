@@ -9,38 +9,21 @@ platform :ios do
       clean: true,
       build_for_testing: true,
       derived_data_path: "DerivedData",
-      destination: "platform=iOS Simulator,name=iPhone 15,OS=17.5",  # Updated OS version
-      xcargs: "ONLY_ACTIVE_ARCH=YES CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO"  # Disable code signing
+      destination: "platform=iOS Simulator,name=iPhone 15,OS=17.5",
+      xcargs: "CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO"
     )
   end
 
   desc "Run all tests"
   lane :test do
+    # Just build for now since we don't have tests yet
     scan(
       workspace: "MyApp.xcworkspace",
       scheme: "MyApp",
       clean: true,
-      code_coverage: true,
       derived_data_path: "DerivedData",
-      destination: "platform=iOS Simulator,name=iPhone 15,OS=17.5",  # Updated OS version
-      xcargs: "CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO"  # Disable code signing
-    )
-  end
-
-  desc "Run integration tests"
-  lane :run_integration_testing do
-    scan(
-      workspace: "MyApp.xcworkspace",
-      scheme: "MyApp",
-      clean: false,
-      code_coverage: true,
-      derived_data_path: "DerivedData",
-      destination: "platform=iOS Simulator,name=iPhone 15,OS=17.5",  # Updated OS version
-      xcargs: "CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO",  # Disable code signing
-      test_without_building: true,
-      only_testing: [
-        "MyAppIntegrationTests"  # Make sure this matches your test target name
-      ]
+      destination: "platform=iOS Simulator,name=iPhone 15,OS=17.5",
+      xcargs: "CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO"
     )
   end
 end
