@@ -2,47 +2,25 @@ version: 0.2
 
 env:
   variables:
-    #xcode version is set to 15.4
     LANG: "en_US.UTF-8"
     LC_ALL: "en_US.UTF-8"
     FL_OUTPUT_DIR: "output"
     working_directory: "/Users/*********/project"
     shell: "/bin/bash --login -o pipefail"
-    SCAN_DEVICE: "iPhone 15 (16.4)"
-
-cache:
-  paths:
-    - 'DerivedData/**/*'
+    SCAN_DEVICE: "iPhone 15 (17.5)"
 
 phases:
-  install:
-    commands: #Taking from https://circleci.com/developer/orbs/orb/circleci/macos#commands-install-rosetta
-      - echo "checking if Rosetta needs to be installed"
-      - |
-        #!/usr/bin/env bash
-        if [ "$(uname -m)" = "arm64" ]; then
-            /usr/sbin/softwareupdate --install-rosetta --agree-to-license
-        else
-            echo "Rosetta 2 can only be installed on Apple Silicon!"
-            exit 1
-        fi
-
   pre_build:
     commands:
-        - echo "Check full directory"
-        - ls -lsa
-        - if [ ! -d "DerivedData" ]; then mkdir DerivedData; else echo "DerivedData exists"; fi
-        - ls -la DerivedData
-        - echo "ls on derivedData"
-        - ls DerivedData
-        - sudo chmod -R 777 DerivedData
-        - echo "Verify Fastfile location and content:"
-        - ls -la fastlane/
-        - cat fastlane/Fastfile
-        - echo "setup gems and pod install"
-        - bundle install #Gem Install
-        - export SSL_CERT_FILE=/etc/ssl/cert.pem
-        - pod install #Pod Install
+        - echo "Listing project information..."
+        - xcodebuild -project MyApp.xcodeproj -list
+        - echo "Searching for target IDs..."
+        - cat MyApp.xcodeproj/project.pbxproj | grep -A 5 "BuildableIdentifier"
+        - echo "Current directory contents:"
+        - ls -la
+        - echo "XcodeProj contents:"
+        - ls -la MyApp.xcodeproj
+        # ... rest of your pre_build commands
 
   build:
     commands:
@@ -53,10 +31,5 @@ phases:
       - echo "Does target exist?"
       - ls -lsa "$(readlink DerivedData)"
       - echo "Run Integration Tests"
-      - sudo bundle exec fastlane ios test  # Changed to use existing 'test' lane
+      - sudo bundle exec fastlane ios test
       - exit 0
-
-artifacts:
-  files:
-    - 'output/**'
-#add output as artifact
