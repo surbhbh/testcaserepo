@@ -16,12 +16,12 @@ platform :ios do
 
   desc "Run all tests"
   lane :test do
-    # Just build for now since we don't have tests yet
-    scan(
+    # Since we don't have tests yet, just build
+    xcodebuild(
       workspace: "MyApp.xcworkspace",
       scheme: "MyApp",
       clean: true,
-      derived_data_path: "DerivedData",
+      build: true,
       destination: "platform=iOS Simulator,name=iPhone 15,OS=17.5",
       xcargs: "CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO"
     )
