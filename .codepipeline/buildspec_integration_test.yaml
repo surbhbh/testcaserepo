@@ -56,7 +56,7 @@ phases:
       - sudo bundle exec fastlane ios test  # Changed to use existing 'test' lane
       - exit 0
 
-#artifacts:
- # files:
-#    - 'output/**'
+artifacts:
+  files:
+    - 'output/**'
 #add output as artifact
