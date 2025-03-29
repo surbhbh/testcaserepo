@@ -9,7 +9,7 @@ platform :ios do
       clean: true,
       build_for_testing: true,
       derived_data_path: "DerivedData",
-      destination: "platform=iOS Simulator,name=#{ENV['SCAN_DEVICE']}",
+      destination: "platform=iOS Simulator,name=iPhone 15,OS=16.4",  # Fixed destination format
       xcargs: "ONLY_ACTIVE_ARCH=YES"
     )
   end
@@ -22,7 +22,7 @@ platform :ios do
       clean: true,
       code_coverage: true,
       derived_data_path: "DerivedData",
-      destination: "platform=iOS Simulator,name=#{ENV['SCAN_DEVICE']}"
+      destination: "platform=iOS Simulator,name=iPhone 15,OS=16.4"  # Fixed destination format
     )
   end
 
@@ -31,14 +31,14 @@ platform :ios do
     scan(
       workspace: "MyApp.xcworkspace",
       scheme: "MyApp",
-      clean: false,  # Set to false since we already built in build_for_testing
+      clean: false,
       code_coverage: true,
       derived_data_path: "DerivedData",
-      destination: "platform=iOS Simulator,name=#{ENV['SCAN_DEVICE']}",
+      destination: "platform=iOS Simulator,name=iPhone 15,OS=16.4",  # Fixed destination format
+      test_without_building: true,
       only_testing: [
         "MyAppIntegrationTests"  # Adjust this to your actual integration test target name
-      ],
-      test_without_building: true  # Add this since we already built in build_for_testing
+      ]
     )
   end
 end
