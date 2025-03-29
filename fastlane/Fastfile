@@ -9,8 +9,8 @@ platform :ios do
       clean: true,
       build_for_testing: true,
       derived_data_path: "DerivedData",
-      destination: "platform=iOS Simulator,name=iPhone 15,OS=16.4",  # Fixed destination format
-      xcargs: "ONLY_ACTIVE_ARCH=YES"
+      destination: "platform=iOS Simulator,name=iPhone 15,OS=17.5",  # Updated OS version
+      xcargs: "ONLY_ACTIVE_ARCH=YES CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO"  # Disable code signing
     )
   end
 
@@ -22,7 +22,8 @@ platform :ios do
       clean: true,
       code_coverage: true,
       derived_data_path: "DerivedData",
-      destination: "platform=iOS Simulator,name=iPhone 15,OS=16.4"  # Fixed destination format
+      destination: "platform=iOS Simulator,name=iPhone 15,OS=17.5",  # Updated OS version
+      xcargs: "CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO"  # Disable code signing
     )
   end
 
@@ -34,10 +35,11 @@ platform :ios do
       clean: false,
       code_coverage: true,
       derived_data_path: "DerivedData",
-      destination: "platform=iOS Simulator,name=iPhone 15,OS=16.4",  # Fixed destination format
+      destination: "platform=iOS Simulator,name=iPhone 15,OS=17.5",  # Updated OS version
+      xcargs: "CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO",  # Disable code signing
       test_without_building: true,
       only_testing: [
-        "MyAppIntegrationTests"  # Adjust this to your actual integration test target name
+        "MyAppIntegrationTests"  # Make sure this matches your test target name
       ]
     )
   end
