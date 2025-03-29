@@ -6,7 +6,7 @@ env:
     LANG: "en_US.UTF-8"
     LC_ALL: "en_US.UTF-8"
     FL_OUTPUT_DIR: "output"
-    working_directory: "/Users/distiller/project"
+    working_directory: "/Users/*********/project"
     shell: "/bin/bash --login -o pipefail"
     SCAN_DEVICE: "iPhone 15 (16.4)"
 
@@ -36,6 +36,9 @@ phases:
         - echo "ls on derivedData"
         - ls DerivedData
         - sudo chmod -R 777 DerivedData
+        - echo "Verify Fastfile location and content:"
+        - ls -la fastlane/
+        - cat fastlane/Fastfile
         - echo "setup gems and pod install"
         - bundle install #Gem Install
         - export SSL_CERT_FILE=/etc/ssl/cert.pem
@@ -43,8 +46,6 @@ phases:
 
   build:
     commands:
-#      - echo "Build For Testing"
-#      - bundle exec fastlane build_for_testing
       - echo "checking DerivedData in build"
       - sudo ls -r DerivedData
       - echo "Derived Data points to:"
@@ -52,10 +53,10 @@ phases:
       - echo "Does target exist?"
       - ls -lsa "$(readlink DerivedData)"
       - echo "Run Integration Tests"
-      - sudo bundle exec fastlane run_integration_testing
+      - sudo bundle exec fastlane ios test  # Changed to use existing 'test' lane
       - exit 0
-#
-artifacts:
-  files:
-    - 'output/**'
+
+#artifacts:
+ # files:
+#    - 'output/**'
 #add output as artifact
