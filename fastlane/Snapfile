@@ -1,0 +1,58 @@
+# Uncomment the lines below you want to change by removing the # in the beginning
+
+DEFAULT_DEVICE = "iPhone 8"
+DEFAULT_OS = "14.1"
+
+# A list of devices you want to take the screenshots from
+if ENV['UNIVERSAL_LINK_TESTING']
+ devices([
+   "iPhone 11",
+ ])
+ ios_version("13.5")
+end
+
+if ENV['DEVICE']
+ devices([
+ ENV['DEVICE'],
+ ])
+ else
+ devices([
+ DEFAULT_DEVICE,
+ ])
+end
+
+if ENV['OS']
+ ios_version(ENV['OS'])
+ else
+ ios_version(DEFAULT_OS)
+end
+
+ languages([
+   "en-US"
+])
+
+# The name of the scheme which contains the UI Tests
+# scheme("pr_auth_flows")
+
+ buildlog_path("output/scan")
+ output_simulator_logs(true)
+ output_directory("output")
+ skip_open_summary(true)
+ skip_helper_version_check(true)
+ test_without_building(true)
+ derived_data_path("DerivedData/")
+ stop_after_first_error(true)
+ xcpretty_args('--report html --output output/test_report.html  -t')
+
+# remove the '#' to clear all previously generated screenshots before creating new ones
+ clear_previous_screenshots(true)
+
+# Remove the '#' to set the status bar to 9:41 AM, and show full battery and reception.
+# override_status_bar(true)
+
+# Arguments to pass to the app on launch. See https://docs.fastlane.tools/actions/snapshot/#launch-arguments
+# launch_arguments(["-favColor red"])
+
+# For more information about all available options run
+# fastlane action snapshot
+
