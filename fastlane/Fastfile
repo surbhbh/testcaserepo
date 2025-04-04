@@ -1,29 +1,311 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
 default_platform(:ios)
 
 platform :ios do
-  desc "Build for testing"
+  before_all do
+    setup_circle_ci
+  end
+  
+#Build Lanes
+  
   lane :build_for_testing do
-    scan(
-      workspace: "MyApp.xcworkspace",
-      scheme: "MyApp",
-      clean: true,
-      build_for_testing: true,
-      derived_data_path: "DerivedData",
-      destination: "platform=iOS Simulator,name=iPhone 15,OS=17.5",
-      xcargs: "CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO"
-    )
+    scan(scheme: "fieldwire", derived_data_path: "DerivedData/", build_for_testing: true, skip_build: true, include_simulator_logs: false)
+  end
+  
+  lane :build_for_adhoc do |options|
+    match(type: "adhoc", readonly: true)
+    
+    increment_build_number(build_number: options[:build_num])
+    
+    gym(export_method: "ad-hoc", configuration:"Staging", silent: true, clean: true, derived_data_path: "DerivedData/")
+  end
+  
+  lane :build_for_appstore do |options|
+    match(type: "appstore", readonly: true)
+    
+    increment_build_number(build_number: options[:build_num])
+    
+    archivePath = "DerivedData/fieldwire_" + current_build_fullversion
+    xcarchive(archive_path: "#{archivePath}", scheme: "fieldwire", configuration: "Archive", silent: true, clean: true, derived_data_path: "DerivedData/")
+    
+    gym(export_method: "app-store", configuration: "Archive", silent: true, skip_build_archive: true, archive_path: "#{archivePath}")
+    
+    backup_xcarchive(destination: "DerivedData/", zip: true, versioned: false)
+  end
+  
+#Test Lanes
+  
+  lane :run_unit_testing do
+    scan(scheme: "unit_tests", derived_data_path: "DerivedData/", test_without_building: true, include_simulator_logs: false)
   end
 
-  desc "Run all tests"
-  lane :test do
-    # Since we don't have tests yet, just build
-    xcodebuild(
-      workspace: "MyApp.xcworkspace",
-      scheme: "MyApp",
-      clean: true,
-      build: true,
-      destination: "platform=iOS Simulator,name=iPhone 15,OS=17.5",
-      xcargs: "CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO"
-    )
+  lane :run_ui_testing do
+    scan(scheme: "FieldwireUITests", derived_data_path: "DerivedData/", test_without_building: true, include_simulator_logs: false)
   end
+
+  lane :run_ui_testing_auth do
+    scan(scheme: "ui_automation_auth_flows", derived_data_path: "DerivedData/", test_without_building: true, include_simulator_logs: false)
+  end
+  
+  lane :run_ui_testing_tasks do
+    scan(scheme: "ui_automation_task_flows", derived_data_path: "DerivedData/", test_without_building: true, include_simulator_logs: false)
+  end
+
+  lane :run_ui_testing_projects do
+    scan(scheme: "ui_automation_other_project_flows", derived_data_path: "DerivedData/", test_without_building: true, include_simulator_logs: false)
+  end
+
+  lane :run_ui_testing_plans do
+    scan(scheme: "ui_automation_plans_flows", derived_data_path: "DerivedData/", test_without_building: true, include_simulator_logs: false)
+  end
+
+  lane :run_ui_testing_forms do
+    scan(scheme: "ui_automation_forms_flows", derived_data_path: "DerivedData/", test_without_building: true, include_simulator_logs: false)
+  end
+
+  lane :run_ui_testing_universal_links do
+    scan(scheme: "ui_automation_universal_link_flows", derived_data_path: "DerivedData/", test_without_building: true, include_simulator_logs: false)
+  end
+
+  lane :run_pr_testing_auth do
+    scan(scheme: "pr_auth_flows", derived_data_path: "DerivedData/", test_without_building: true, include_simulator_logs: false)
+  end
+  
+  lane :run_pr_testing_tasks do
+    scan(scheme: "pr_task_flows", derived_data_path: "DerivedData/", test_without_building: true, include_simulator_logs: false)
+  end
+
+  lane :run_pr_testing_projects do
+    scan(scheme: "pr_other_project_flows", derived_data_path: "DerivedData/", test_without_building: true, include_simulator_logs: false)
+  end
+
+  lane :run_pr_testing_plans do
+    scan(scheme: "pr_plans_flows", derived_data_path: "DerivedData/", test_without_building: true, include_simulator_logs: false)
+  end
+
+  lane :run_pr_testing_forms do
+    scan(scheme: "pr_forms_flows", derived_data_path: "DerivedData/", test_without_building: true, include_simulator_logs: false)
+  end
+
+  lane :run_unit_testing_new do
+     scan(scheme: "FieldwireUnitTests", derived_data_path: "DerivedData/", test_without_building: true, include_simulator_logs: false)
+  end
+
+  lane :run_pts_unit_tests do
+     scan(scheme: "PlanTextSearch", derived_data_path: "DerivedData/", test_without_building: false, include_simulator_logs: false)
+  end
+
+  lane :run_integration_testing do
+    scan(scheme: "integration_tests", derived_data_path: "DerivedData/", test_without_building: true, include_simulator_logs: false, reinstall_app: true)
+  end
+  
+  lane :run_integration_testing_new do
+    scan(scheme: "FieldwireIntegrationTests", derived_data_path: "DerivedData/", test_without_building: true, include_simulator_logs: false, reinstall_app: true)
+  end
+  
+#Upload Lanes
+
+lane :upload_to_firebase do |options|
+  groups = options[:groups] || 'ios_qa_product'
+  ipapath = options[:ipa_path] || 'fieldwire.ipa'
+  message = options[:message] || last_git_commit
+  
+  staging_build = firebase_app_distribution(
+     app: "#{options[:app_id]}",
+     groups: "#{groups}",
+     ipa_path: "#{ipapath}",
+     release_notes: "#{message}",
+     firebase_cli_token: "#{options[:firebase_token]}"
+  )
+  
+  puts "\e[1;32mUpload Build To Firebase Successfully...\e[0m"
+  puts "Release Note : \n" + options[:message]
+
+  # Handle adding firebase build download url to the related Jira ticket
+  if options[:jira_ticket] != ""
+	jira(
+	url: "#{options[:jira_url]}",
+	username: "#{options[:jira_username]}",
+	password: "#{options[:jira_token]}",
+	ticket_id: "#{options[:jira_ticket]}",
+	comment_text: "Staging Build: #{staging_build[:displayVersion]} (#{staging_build[:buildVersion]}):\n #{staging_build[:testingUri]}"
+ 	)
+  end
+
+  # Create Qase Nightly Test Run and add the firebase build download url to it
+  if options[:create_nightly_qase_report] == true
+
+	nightly_run_url1=sh("../FieldwireUITests/SupportScripts/getLatestCIRunFromDesiredWorkflow.sh", "#{options[:circleci_token]}", "#{options[:ci_workflow_pt1]}", "--only-url", "1")
+	nightly_run_url2=sh("../FieldwireUITests/SupportScripts/getLatestCIRunFromDesiredWorkflow.sh", "#{options[:circleci_token]}", "#{options[:ci_workflow_pt2]}", "--only-url", "1")
+
+	sh("../FieldwireUITests/SupportScripts/createQaseNightlyTestRun.sh", "#{options[:qase_token]}", "#{options[:target_os_version]}",  "[Staging Build: #{staging_build[:displayVersion]} (#{staging_build[:buildVersion]})](#{staging_build[:testingUri]}) | [Nightly Run 1](#{nightly_run_url1}) | [Nightly Run 2](#{nightly_run_url2})")
+  end
+end
+
+lane :upload_to_appstore do |options|
+  ipapath = options[:ipa_path] || 'fieldwire.ipa'
+  
+  # For Backup TestFlight Builds
+  #upload_to_dropbox(access_token: options[:dropbox_access_token])  // Temporarily removing this because Dropbox API has changed
+  
+  app_store_connect_api_key
+
+  upload_to_testflight(
+     ipa: "#{ipapath}",
+     skip_waiting_for_build_processing: true
+  )
+  
+  puts "\e[1;32mUpload Build To Testflight Successfully...\e[0m"
+end
+
+lane :upload_to_dropbox do |options|
+  dropboxPath = "/iOS/TestFlight"
+  archivePath = "DerivedData/fieldwire_" + current_build_fullversion + ".xcarchive.zip"
+  dropbox(
+    file_path: "#{archivePath}",
+    dropbox_path:"#{dropboxPath}",
+    write_mode:"overwrite",
+    access_token:"#{options[:access_token]}"
+  )
+end
+
+#CircleCI Lanes
+
+lane :build_archive do |options|
+   commit = last_git_commit
+   if commit[:message].downcase.include? "skip_to_firebase" and options[:force_upload] == false
+    puts "\e[1;34mSkiping Archive... (#skip_to_firebase message found in last commit message)\e[0m"
+   else
+    buildnumber = options[:build_number] || testflight_buildnumber
+    build_for_adhoc(build_num: buildnumber)
+   end
+ end
+ 
+ lane :build_appstore do |options|
+   if options[:branch] == "staging" or options[:branch] == "master" or options[:force_upload] == true
+     buildnumber = options[:build_number] || testflight_buildnumber
+     build_for_appstore(build_num: buildnumber)
+   else
+     puts "\e[1;34mSkiping Archive... (Use un-supported targeted branch)\e[0m"
+   end
+ end
+
+lane :stage_upload do |options|
+  commit = last_git_commit
+  if commit[:message].downcase.include? "skip_to_firebase"
+    puts "\e[1;34mSkiping Archive... (#skip_to_firebase message found in last commit message)\e[0m"
+  else
+    message = release_note
+    if options[:force_upload] == true
+        # assume its appstore build equivalent, so append testflight build number.
+        message = "Testflight Build : " + current_build_fullversion + "\n" + release_note
+    end
+
+    if options[:target_development] == true
+        upload_to_firebase(app_id: options[:app_id], firebase_token: options[:firebase_token], ipa_path: options[:ipa_path], message: release_note, jira_url: options[:jira_url], jira_username: options[:jira_username], jira_token: options[:jira_token], jira_ticket: options[:jira_ticket])
+    else
+        upload_to_firebase(app_id: options[:app_id], firebase_token: options[:firebase_token], ipa_path: options[:ipa_path], message: release_note, jira_ticket: "")
+    end
+  end
+end
+
+lane :create_nightly_build_and_qase_run do |options|
+  commit = last_git_commit
+  if commit[:message].downcase.include? "skip_to_firebase"
+    puts "\e[1;34mSkiping Archive... (#skip_to_firebase message found in last commit message)\e[0m"
+  else
+    message = release_note
+    if options[:force_upload] == true
+        # assume its appstore build equivalent, so append testflight build number.
+        message = "Testflight Build : " + current_build_fullversion + "\n" + release_note
+    end
+    
+    if options[:target_development] == true
+        upload_to_firebase(app_id: options[:app_id], firebase_token: options[:firebase_token], ipa_path: options[:ipa_path], message: release_note, jira_url: options[:jira_url], jira_username: options[:jira_username], jira_token: options[:jira_token], jira_ticket: options[:jira_ticket], create_nightly_qase_report: options[:create_nightly_qase_report], qase_token: options[:qase_token], target_os_version: options[:target_os_version], circleci_token: options[:circleci_token], ci_workflow_pt1: options[:ci_workflow_pt1], ci_workflow_pt2: options[:ci_workflow_pt2])
+    else
+        upload_to_firebase(app_id: options[:app_id], firebase_token: options[:firebase_token], ipa_path: options[:ipa_path], message: release_note, jira_ticket: "", create_nightly_qase_report: false)
+    end
+  end
+end
+
+lane :prod_upload do |options|
+  if options[:branch] == "staging" or options[:branch] == "master" or options[:force_upload] == true
+    upload_to_appstore(ipa_path: options[:ipa_path], dropbox_access_token: options[:dropbox_access_token])
+  else
+      puts "\e[1;34mSkiping Upload to TestFlight... (Use un-supported targeted branch)\e[0m"
+  end
+end
+
+lane :post_slack do |options|
+  message = "App successfully submitted to TestFlight!" + ": *" + current_build_fullversion + "* :tada:\n*Change Log : *\n```" + release_note + "```"
+  slack(
+    channel: "#eng_ios",
+    slack_url: "#{options[:slack_url]}",
+    message: "#{message}"
+  )
+end
+
+lane :post_message_slack do |options|
+  message = options[:message] | "Fastlane Job Message"
+  slack(
+    channel: "#eng_ios",
+    slack_url: "#{options[:slack_url]}",
+    message: "#{message}"
+  )
+end
+  
+#Review/Helper Lanes
+  
+  lane :review_app do
+    build_for_testing
+    run_unit_testing
+    run_unit_testing_new
+    run_ui_testing
+    run_integration_testing
+  end
+  
+  lane :review_upload do
+    build_archive(force_upload: "true", build_number: 11)
+    build_appstore(force_upload: "true", build_number: 11)
+    stage_upload(force_upload: "true")
+    prod_upload(force_upload: "true")
+  end
+  
+  def release_note
+    branch = git_branch
+    commit = last_git_commit
+    changelog = sh("git log --pretty=format:'- %s <%an>%n' --max-count=10 --abbrev-commit --decorate --no-merges --first-parent #{branch}")
+    
+    message = branch + " | " + commit[:message].to_s
+    
+    return message + "\n" + "#{changelog.to_s}"
+  end
+  
+  def testflight_buildnumber
+    app_store_connect_api_key
+    version = get_version_number(xcodeproj: "Fieldwire.xcodeproj", target: "fieldwire")
+    value = latest_testflight_build_number(version: version)
+    return value+1
+  end
+  
+  def current_build_fullversion
+    version = get_version_number(xcodeproj: "Fieldwire.xcodeproj", target: "fieldwire")
+    build_number = get_build_number(xcodeproj: "Fieldwire.xcodeproj")
+    return "#{version}.#{build_number}"
+  end
+  
 end
