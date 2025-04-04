@@ -6,7 +6,7 @@ env:
     LANG: "en_US.UTF-8"
     LC_ALL: "en_US.UTF-8"
     FL_OUTPUT_DIR: "output"
-    working_directory: "/Users/*********/project"
+    working_directory: "/Users/distiller/project"
     shell: "/bin/bash --login -o pipefail"
     SCAN_DEVICE: "iPhone 15 (17.5)"
 
@@ -61,7 +61,7 @@ phases:
       - echo "Verify scheme configuration"
       - xcodebuild -workspace MyApp.xcworkspace -scheme MyApp -list
       - echo "Run Integration Tests"
-      - sudo bundle exec fastlane ios test
+      - sudo bundle exec fastlane run_integration_testing
       - exit 0
 
 artifacts:
